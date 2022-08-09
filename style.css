@@ -80,4 +80,20 @@
 
 #reset {
     background-color: black;
+    border: 2px solid;
+}
+
+#random{
+    background-color: rgb(143, 151, 32);
+    border: 2px solid;
+}
+
+#unbeatable{
+    background-color: rgb(139, 23, 23);
+    border: 2px solid;
+}
+
+#human{
+    background-color: rgb(33, 139, 23);
+    border: 2px solid;
 }
