@@ -276,20 +276,25 @@ function getPlayerMove(tile, input){
         printResult();
         if(gameType === 'random' && isBoardFull() === false && getWinningPlayer() === 'None'){
             gameState = false;
+            resetButton.setAttribute("hidden", true);
             setTimeout(function(){
                 getRandomAIMove();
                 gameState = true;
                 printResult();
-            },1500);
+                resetButton.removeAttribute('hidden');
+            },500);
         }else if(gameType === 'unbeatable' && isBoardFull() === false && getWinningPlayer() === 'None'){
             gameState = false;
+            resetButton.setAttribute("hidden", true);
             setTimeout(function(){
                 bestMove();
                 gameState = true;
                 printResult();
-            },1500);
+                resetButton.removeAttribute('hidden');
+            },500);
         }else if(gameType === 'smart' && isBoardFull() === false && getWinningPlayer() === 'None'){
             gameState = false;
+            resetButton.setAttribute("hidden", true);
             setTimeout(function(){
                 var freeSpace = possibleIndexList.length;
                 AIGoesForEasyWin();
@@ -305,7 +310,8 @@ function getPlayerMove(tile, input){
                 }
                 gameState = true;
                 printResult();
-            },1500);
+                resetButton.removeAttribute('hidden');
+            },500);
         }
     }else{
         alert('Incorrect move! Please, try again.')
