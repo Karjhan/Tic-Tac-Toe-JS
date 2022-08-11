@@ -3,18 +3,20 @@ const tiles = Array.from(document.querySelectorAll('.tile'));
 const playerDisplay = document.querySelector('.display-player');
 const resetButton = document.querySelector('#reset');
 const announcer = document.querySelector('.announcer');
-const randomButton = document.querySelector('#random');
-const unbeatableButton = document.querySelector('#unbeatable');
+const randomAIButton = document.querySelector('#random');
+const unbeatableAIButton = document.querySelector('#unbeatable');
 const humanButton = document.querySelector('#human');
+const smartAIButton = document.querySelector('#smart');
 
 tiles.forEach( (tile, index) => {
     tile.addEventListener('click', () => userAction(tile, index));
 });
 
 resetButton.addEventListener('click', resetBoard);
-randomButton.addEventListener('click', chooseRandom);
-unbeatableButton.addEventListener('click', chooseUnbeatable);
+randomAIButton.addEventListener('click', chooseRandomAI);
+unbeatableAIButton.addEventListener('click', chooseUnbeatableAI);
 humanButton.addEventListener('click', chooseHuman);
+smartAIButton.addEventListener('click',chooseSmartAI);
 
 /// START CODE AFTER THIS
 
@@ -34,7 +36,7 @@ var possibleIndexList = [0,1,2,3,4,5,6,7,8];
 // variable for gameState (true = playable, flase = not playable)
 var gameState = false;
 
-// variable for gameType (human, random, unbeatable, unknown) changed by button click
+// variable for gameType (human, random, unbeatable, unknown, smart) changed by button click
 var gameType = "unknown";
 
 // changePlayer function is used to change the current-player variable and update the site interface accordingly
@@ -94,7 +96,7 @@ function getWinningPlayer(){
     return 'None'
 }
 
-
+// printResul handles the printing/annoncing part of the game
 function printResult(){
     var winner = getWinningPlayer();
     switch(winner){
@@ -128,39 +130,191 @@ function isBoardFull(){
     return true
 }
 
+function AIGoesForEasyWin(){
+    for (let i =0; i < 3; i++){
+        for (let j = 0; j < 3; j++){
+            var indexOfTile = i*3+j;
+            if(possibleIndexList.indexOf(indexOfTile)!==-1){
+                board[i][j] = current_player;
+                if(getWinningPlayer() === current_player){ 
+                    board[i][j] = current_player;
+                    tiles[indexOfTile].innerText = current_player;
+                    tiles[indexOfTile].classList.add(`Player${current_player}`);
+                    possibleIndexList.splice(possibleIndexList.indexOf(indexOfTile), 1);
+                    return;
+                }else{
+                    board[i][j] = ".";
+                }
+            }
+        }
+    }
+}
+
+function AIPreventsEasyLose(){
+    for (let i =0; i < 3; i++){
+        for (let j = 0; j < 3; j++){
+            var indexOfTile = i*3+j;
+            if(possibleIndexList.indexOf(indexOfTile)!==-1){
+                board[i][j] = "X"
+                if(getWinningPlayer() === "X"){ 
+                    board[i][j] = current_player;
+                    tiles[indexOfTile].innerText = current_player;
+                    tiles[indexOfTile].classList.add(`Player${current_player}`);
+                    possibleIndexList.splice(possibleIndexList.indexOf(indexOfTile), 1);
+                    return;
+                }else{
+                    board[i][j] = ".";
+                }
+            }
+        }
+    }
+}
+
+// random move for the AI
+function getRandomAIMove(){
+    indexOfInput = Math.floor(Math.random()*possibleIndexList.length);
+    var randIndex = possibleIndexList[indexOfInput];
+    stIndex = Math.floor(randIndex/3);
+    ndIndex = randIndex%3;
+    tiles[randIndex].classList.add(`Player${current_player}`);
+    tiles[randIndex].innerText = current_player;
+    board[stIndex][ndIndex] = current_player;
+    possibleIndexList.splice(indexOfInput,1);
+    changePlayer();
+}
+
+// bestMove function decides which move is the best according to the minimax algorithm
+// it will return the correct indeces (row, col) for the board position
+function bestMove(){
+    var bestScore = -999;
+    var move = [];
+    var score;
+    for(var i=0;i<board.length;i++){
+        for(var j=0;j<board.length;j++){
+            if(board[i][j] === '.'){
+                board[i][j] = current_player;
+                score = minimax(board,0,false,current_player);
+                board[i][j] = '.';
+                if(score > bestScore){
+                    bestScore = score;
+                    move[0] = i;
+                    move[1] = j;
+                }
+            }
+        }
+    }
+    board[move[0]][move[1]] = current_player;
+    tiles[move[0]*3+move[1]].classList.add(`Player${current_player}`);
+    tiles[move[0]*3+move[1]].innerText = current_player;
+    changePlayer();
+    return
+}
+
+// minimax function used to calculate the scores for bestMoves 
+// board is the current state of the game
+// depth is the current depth of the search
+// isMaximizing is establishing wether the function plays as the maximizer or the minimizer
+function minimax(board,depth,isMaximizing,player){
+    var winner = getWinningPlayer();
+    if(winner === 'X'){
+        return -100 + depth
+    }else if(winner === 'O'){
+        return 100 - depth
+    }else if(winner === 'None' && isBoardFull() === true){
+        return 0
+    }
+    
+    if (player==='X')
+        player='O';
+    else
+        player='X';
+
+    if(isMaximizing){
+        var bestScore = -999;
+        for(var i=0;i<board.length;i++){
+            for(var j=0;j<board.length;j++){
+                if(board[i][j]==='.'){
+                    board[i][j] = player; 
+                    var score = minimax(board,depth+1,false,player);
+                    board[i][j] = '.';
+                    if(score>bestScore){
+                        bestScore = score;
+                    }
+                }
+            }
+        }
+        return bestScore
+    }else{
+        var bestScore = 999;
+        for(var i=0;i<board.length;i++){
+            for(var j=0;j<board.length;j++){
+                if(board[i][j]==='.'){
+                    board[i][j] = player; 
+                    var score = minimax(board,depth+1,true,player);
+                    board[i][j] = '.';
+                    if(score<bestScore){
+                        bestScore = score;
+                    }
+                }
+            }
+        }
+        return bestScore
+    }
+}
+
+
 function getPlayerMove(tile, input){
     var indexOfInput = possibleIndexList.indexOf(input);
     if(indexOfInput !== -1){
         var stIndex = Math.floor(input/3);
         var ndIndex = input%3;
+        tile.classList.add(`Player${current_player}`)
         tile.innerText = current_player;
         board[stIndex][ndIndex] = current_player;
         possibleIndexList.splice(indexOfInput,1);
         changePlayer();
-        if(gameType === 'random' && isBoardFull() === false){
-            indexOfInput = Math.floor(Math.random()*possibleIndexList.length);
-            var randIndex = possibleIndexList[indexOfInput];
-            stIndex = Math.floor(randIndex/3);
-            ndIndex = randIndex%3;
-            tiles[randIndex].innerText = current_player;
-            board[stIndex][ndIndex] = current_player;
-            possibleIndexList.splice(indexOfInput,1);
-            changePlayer();
-        }else if(gameType === 'unbeatable' && isBoardFull() === false){
-
+        printResult();
+        if(gameType === 'random' && isBoardFull() === false && getWinningPlayer() === 'None'){
+            gameState = false;
+            setTimeout(function(){
+                getRandomAIMove();
+                gameState = true;
+                printResult();
+            },1500);
+        }else if(gameType === 'unbeatable' && isBoardFull() === false && getWinningPlayer() === 'None'){
+            gameState = false;
+            setTimeout(function(){
+                bestMove();
+                gameState = true;
+                printResult();
+            },1500);
+        }else if(gameType === 'smart' && isBoardFull() === false && getWinningPlayer() === 'None'){
+            gameState = false;
+            setTimeout(function(){
+                var freeSpace = possibleIndexList.length;
+                AIGoesForEasyWin();
+                if(possibleIndexList.length === freeSpace){ 
+                    AIPreventsEasyLose();
+                    if((possibleIndexList.length === freeSpace)){
+                        getRandomAIMove();
+                    }else{
+                        changePlayer();
+                    }
+                }else{
+                    changePlayer();
+                }
+                gameState = true;
+                printResult();
+            },1500);
         }
     }else{
         alert('Incorrect move! Please, try again.')
     }
 }
 
-function userAction(x,y){
+function userAction(tile,index){
     if(gameState){
-        getPlayerMove(x,y);
-        printResult();
-        console.log(board);
-        console.log(isBoardFull());
-        console.log(gameType);
+        getPlayerMove(tile,index);
     }  
 }
 
@@ -181,30 +335,37 @@ function resetBoard(){
     getEmptyBoard();
     announcer.classList.add('hide');
     gameState = false;
-    randomButton.removeAttribute('hidden');
+    randomAIButton.removeAttribute('hidden');
     humanButton.removeAttribute('hidden');
-    unbeatableButton.removeAttribute('hidden');
+    unbeatableAIButton.removeAttribute('hidden');
+    smartAIButton.removeAttribute('hidden');
     resetButton.setAttribute("hidden", true);
     gameType = "unknown";
     possibleIndexList = [0,1,2,3,4,5,6,7,8];
+    for(item of tiles){
+        item.classList.remove('PlayerX');
+        item.classList.remove('PlayerO');
+    }
 }
 
 // chooseRandom changes gameType and hides all buttons except Reset
-function chooseRandom(){
+function chooseRandomAI(){
     resetButton.removeAttribute('hidden');
-    unbeatableButton.setAttribute("hidden", true);
+    unbeatableAIButton.setAttribute("hidden", true);
     humanButton.setAttribute("hidden", true);
-    randomButton.setAttribute("hidden", true);
+    randomAIButton.setAttribute("hidden", true);
+    smartAIButton.setAttribute("hidden", true);
     gameType = "random";
     gameState = true;
 }
 
 // chooseUnbeatable changes gameType and hides all buttons except Reset
-function chooseUnbeatable(){
+function chooseUnbeatableAI(){
     resetButton.removeAttribute('hidden');
-    randomButton.setAttribute("hidden", true);
+    randomAIButton.setAttribute("hidden", true);
     humanButton.setAttribute("hidden", true);
-    unbeatableButton.setAttribute("hidden", true);
+    unbeatableAIButton.setAttribute("hidden", true);
+    smartAIButton.setAttribute("hidden", true);
     gameType = "unbeatable";
     gameState = true;
 }
@@ -212,10 +373,21 @@ function chooseUnbeatable(){
 // chooseHuman changes gameType and hides all buttons except Reset
 function chooseHuman(){
     resetButton.removeAttribute('hidden');
-    unbeatableButton.setAttribute("hidden", true);
-    randomButton.setAttribute("hidden", true);
+    unbeatableAIButton.setAttribute("hidden", true);
+    randomAIButton.setAttribute("hidden", true);
     humanButton.setAttribute("hidden", true);
+    smartAIButton.setAttribute("hidden", true);
     gameType = "human";
     gameState = true;
 }
 
+// chooseSmart changes gameType for smart randomAI and hides buttons except reset
+function chooseSmartAI(){
+    resetButton.removeAttribute('hidden');
+    unbeatableAIButton.setAttribute("hidden", true);
+    randomAIButton.setAttribute("hidden", true);
+    humanButton.setAttribute("hidden", true);
+    smartAIButton.setAttribute("hidden", true);
+    gameType = "smart";
+    gameState = true;
+}
