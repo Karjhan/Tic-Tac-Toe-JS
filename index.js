@@ -7,6 +7,7 @@ const randomAIButton = document.querySelector('#random');
 const unbeatableAIButton = document.querySelector('#unbeatable');
 const humanButton = document.querySelector('#human');
 const smartAIButton = document.querySelector('#smart');
+const AIvsAIbutton = document.querySelector('#AIvsAI')
 
 tiles.forEach( (tile, index) => {
     tile.addEventListener('click', () => userAction(tile, index));
@@ -17,18 +18,25 @@ randomAIButton.addEventListener('click', chooseRandomAI);
 unbeatableAIButton.addEventListener('click', chooseUnbeatableAI);
 humanButton.addEventListener('click', chooseHuman);
 smartAIButton.addEventListener('click',chooseSmartAI);
+AIvsAIbutton.addEventListener('click', chooseAIvsAI);
 
 /// START CODE AFTER THIS
 
 // importing the functions from minimax.js file as it was bothersome to write it here and test it in the same time
 // const minimax = require("./minimax");
 
+// current player keeps track of current turn player(either X, or O)
 var current_player = 'X';
+
+// board is used to work here internally on js and it is different than the tiles array
 var board = [
     ['.','.','.'],
     ['.','.','.'],
     ['.','.','.']
 ]
+
+//
+var delayedRun;
 
 // list of possible indexes of Titles array of divs. This will be used to check for valid moves 
 var possibleIndexList = [0,1,2,3,4,5,6,7,8];
@@ -206,6 +214,7 @@ function bestMove(){
     board[move[0]][move[1]] = current_player;
     tiles[move[0]*3+move[1]].classList.add(`Player${current_player}`);
     tiles[move[0]*3+move[1]].innerText = current_player;
+    possibleIndexList.splice(move[0]*3+move[1],1);
     changePlayer();
     return
 }
@@ -276,26 +285,26 @@ function getPlayerMove(tile, input){
         printResult();
         if(gameType === 'random' && isBoardFull() === false && getWinningPlayer() === 'None'){
             gameState = false;
-            resetButton.setAttribute("hidden", true);
-            setTimeout(function(){
+            // resetButton.setAttribute("hidden", true);
+            delayedRun = setTimeout(function(){
                 getRandomAIMove();
                 gameState = true;
                 printResult();
-                resetButton.removeAttribute('hidden');
-            },500);
+                // resetButton.removeAttribute('hidden');
+            },1500);
         }else if(gameType === 'unbeatable' && isBoardFull() === false && getWinningPlayer() === 'None'){
             gameState = false;
-            resetButton.setAttribute("hidden", true);
-            setTimeout(function(){
+            // resetButton.setAttribute("hidden", true);
+            delayedRun = setTimeout(function(){
                 bestMove();
                 gameState = true;
                 printResult();
-                resetButton.removeAttribute('hidden');
-            },500);
+                // resetButton.removeAttribute('hidden');
+            },1500);
         }else if(gameType === 'smart' && isBoardFull() === false && getWinningPlayer() === 'None'){
             gameState = false;
-            resetButton.setAttribute("hidden", true);
-            setTimeout(function(){
+            // resetButton.setAttribute("hidden", true);
+            delayedRun = setTimeout(function(){
                 var freeSpace = possibleIndexList.length;
                 AIGoesForEasyWin();
                 if(possibleIndexList.length === freeSpace){ 
@@ -310,8 +319,8 @@ function getPlayerMove(tile, input){
                 }
                 gameState = true;
                 printResult();
-                resetButton.removeAttribute('hidden');
-            },500);
+                // resetButton.removeAttribute('hidden');
+            },1500);
         }
     }else{
         alert('Incorrect move! Please, try again.')
@@ -333,6 +342,7 @@ function userAction(tile,index){
 // option buttons are reappearing
 // reset the possibleIndexList so that we can check again for valid moves
 function resetBoard(){
+    clearTimeout(delayedRun);
     tiles.forEach( tile => tile.innerText = '')
     if (current_player === "O"){
             current_player = "X";
@@ -345,6 +355,7 @@ function resetBoard(){
     humanButton.removeAttribute('hidden');
     unbeatableAIButton.removeAttribute('hidden');
     smartAIButton.removeAttribute('hidden');
+    AIvsAIbutton.removeAttribute('hidden');
     resetButton.setAttribute("hidden", true);
     gameType = "unknown";
     possibleIndexList = [0,1,2,3,4,5,6,7,8];
@@ -361,6 +372,7 @@ function chooseRandomAI(){
     humanButton.setAttribute("hidden", true);
     randomAIButton.setAttribute("hidden", true);
     smartAIButton.setAttribute("hidden", true);
+    AIvsAIbutton.setAttribute('hidden',true);
     gameType = "random";
     gameState = true;
 }
@@ -372,6 +384,7 @@ function chooseUnbeatableAI(){
     humanButton.setAttribute("hidden", true);
     unbeatableAIButton.setAttribute("hidden", true);
     smartAIButton.setAttribute("hidden", true);
+    AIvsAIbutton.setAttribute('hidden',true);
     gameType = "unbeatable";
     gameState = true;
 }
@@ -383,6 +396,7 @@ function chooseHuman(){
     randomAIButton.setAttribute("hidden", true);
     humanButton.setAttribute("hidden", true);
     smartAIButton.setAttribute("hidden", true);
+    AIvsAIbutton.setAttribute('hidden',true);
     gameType = "human";
     gameState = true;
 }
@@ -394,6 +408,31 @@ function chooseSmartAI(){
     randomAIButton.setAttribute("hidden", true);
     humanButton.setAttribute("hidden", true);
     smartAIButton.setAttribute("hidden", true);
+    AIvsAIbutton.setAttribute('hidden',true);
     gameType = "smart";
     gameState = true;
 }
+
+//
+function chooseAIvsAI(){
+    resetButton.removeAttribute('hidden');
+    unbeatableAIButton.setAttribute("hidden", true);
+    randomAIButton.setAttribute("hidden", true);
+    humanButton.setAttribute("hidden", true);
+    smartAIButton.setAttribute("hidden", true);
+    AIvsAIbutton.setAttribute('hidden',true);
+    gameType = "AIvsAI";
+    gameState = true;
+    while(gameType="AIvsAI" && isBoardFull() === false && getWinningPlayer() === 'None'){
+        getRandomAIMove();
+    }
+    printResult();
+}
+
+// delayedRun = setTimeout(function(){
+//     getRandomAIMove();
+//     gameState = true;
+//     printResult();
+//     // resetButton.removeAttribute('hidden');
+// },1500);
+// }
