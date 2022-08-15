@@ -214,7 +214,7 @@ function bestMove(){
     board[move[0]][move[1]] = current_player;
     tiles[move[0]*3+move[1]].classList.add(`Player${current_player}`);
     tiles[move[0]*3+move[1]].innerText = current_player;
-    possibleIndexList.splice(move[0]*3+move[1],1);
+    possibleIndexList.splice(possibleIndexList.indexOf(move[0]*3+move[1]),1);
     changePlayer();
     return
 }
