@@ -28,3 +28,9 @@ Example: I prefer to use the Live-Server extension for VSCode to host the file o
 ![Gameplay](./screenshots/SSTicTacToeGameplay.png)
 ### Winning Screen
 ![Winning](./screenshots/SSTicTacToeWinning.png)
+
+## License
+This project is licensed under the MIT License. See the LICENSE file for details.
+
+## Contact
+Feel free to contact me at: karjhan1999@gmail.com
